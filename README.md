@@ -10,14 +10,12 @@ Este projeto implementa um sistema simples para gerenciamento de pacientes usand
 
 - Exibição da quantidade total de registros
 
+- Editar cadastro de paciente
+
+- Excluir cadastro de paciente
+
+- Ordenar por nome de paciente
+
 - Armazenamento persistente em arquivo binário
 
-```
-Menu Principal
-
-1 - Cadastrar paciente
-2 - Consultar paciente por indice
-3 - Mostrar quantidade de registros
-0 - Sair
-```
 ### Compatível com Windows, Linux e macOS
