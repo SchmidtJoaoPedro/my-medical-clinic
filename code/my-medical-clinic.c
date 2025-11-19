@@ -5,6 +5,7 @@
 #ifdef _WIN32
 #define CLEAR "cls"
 #else
+#define CLEAR "clear"
 #endif
 
 typedef struct {
@@ -23,10 +24,10 @@ void editar(FILE *fp);
 void excluir(FILE *fp);
 int validarCPF(const char *cpf);
 void ordenarPorNome(FILE *fp);
+void gerarRelatorioTXT(FILE *fp);
 void limpaBuffer(void);
 void ler_string(const char *prompt, char *dest, size_t size);
 
-/* MAIN */
 int main(void) {
     FILE *fp = fopen("pacientes.bin", "rb+");
     int opcao;
@@ -48,6 +49,7 @@ int main(void) {
         printf("5 - Editar paciente\n");
         printf("6 - Excluir paciente\n");
         printf("7 - Ordenar por nome\n");
+        printf("8 - Gerar relatorio TXT\n");
         printf("0 - Sair\n");
         printf("Escolha: ");
 
@@ -68,6 +70,7 @@ int main(void) {
             case 5: editar(fp); break;
             case 6: excluir(fp); break;
             case 7: ordenarPorNome(fp); break;
+            case 8: gerarRelatorioTXT(fp); break;
             case 0: printf("Encerrando...\n"); break;
             default: printf("Opcao invalida.\n");
         }
@@ -78,7 +81,6 @@ int main(void) {
     return 0;
 }
 
-/* quantidade de registros */
 long tamanho(FILE *fp) {
     long posAtual, bytes;
     posAtual = ftell(fp);
@@ -88,7 +90,6 @@ long tamanho(FILE *fp) {
     return bytes / sizeof(Paciente);
 }
 
-/* cadastro */
 void cadastrar(FILE *fp) {
     Paciente p;
 
@@ -126,7 +127,6 @@ void cadastrar(FILE *fp) {
     fflush(fp);
 }
 
-/* lista os pacientes */
 void listar(FILE *fp) {
     long total = tamanho(fp);
     Paciente p;
@@ -146,7 +146,6 @@ void listar(FILE *fp) {
     }
 }
 
-/* consulta */
 void consultar(FILE *fp) {
     long total = tamanho(fp);
     long idx;
@@ -181,7 +180,6 @@ void consultar(FILE *fp) {
     printf("Peso: %.2f\n", p.peso);
 }
 
-/* editar */
 void editar(FILE *fp) {
     long total = tamanho(fp);
     long idx;
@@ -240,7 +238,6 @@ void editar(FILE *fp) {
     printf("Registro atualizado.\n");
 }
 
-/* excluir paciente */
 void excluir(FILE *fp) {
     long total = tamanho(fp);
     long idx;
@@ -287,7 +284,6 @@ void excluir(FILE *fp) {
     printf("Registro excluido.\n");
 }
 
-/* ordenar por nome */
 void ordenarPorNome(FILE *fp) {
     long total = tamanho(fp);
     long i, j;
@@ -327,7 +323,6 @@ void ordenarPorNome(FILE *fp) {
     printf("Registros ordenados por nome.\n");
 }
 
-/* CPF simples */
 int validarCPF(const char *cpf) {
     int i;
     if (strlen(cpf) != 11) return 0;
@@ -337,13 +332,48 @@ int validarCPF(const char *cpf) {
     return 1;
 }
 
-/* buffer */
+void gerarRelatorioTXT(FILE *fp) {
+    long total = tamanho(fp);
+    Paciente p;
+    long i;
+
+    if (total == 0) {
+        printf("Nenhum registro para relatorio.\n");
+        return;
+    }
+
+    FILE *rel = fopen("relatorio_pacientes.txt", "w");
+    if (rel == NULL) {
+        printf("Erro ao criar arquivo de relatorio.\n");
+        return;
+    }
+
+    fprintf(rel, "RELATORIO DE PACIENTES\n");
+    fprintf(rel, "=======================\n\n");
+
+    fseek(fp, 0L, SEEK_SET);
+
+    for (i = 0; i < total; i++) {
+        fread(&p, sizeof(Paciente), 1, fp);
+        fprintf(rel, "Paciente %ld\n", i + 1);
+        fprintf(rel, "Nome: %s\n", p.nome);
+        fprintf(rel, "CPF: %s\n", p.cpf);
+        fprintf(rel, "Idade: %d\n", p.idade);
+        fprintf(rel, "Diagnostico: %s\n", p.diagnostico);
+        fprintf(rel, "Peso: %.2f\n", p.peso);
+        fprintf(rel, "----------------------------\n");
+    }
+
+    fclose(rel);
+
+    printf("Relatorio gerado em relatorio_pacientes.txt\n");
+}
+
 void limpaBuffer(void) {
     int c;
     while ((c = getchar()) != '\n' && c != EOF) {}
 }
 
-/* fgets sem \n */
 void ler_string(const char *prompt, char *dest, size_t size) {
     printf("%s", prompt);
     if (fgets(dest, size, stdin) == NULL) {
